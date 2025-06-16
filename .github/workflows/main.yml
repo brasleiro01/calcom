@@ -1,0 +1,34 @@
+name: CI - Cal.com Docker
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Buildx (multiarch)
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login no Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ vars.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push da imagem Cal.com
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            vinnioliver66/cal.com:latest
+            vinnioliver66/cal.com:v${{ github.run_number }}
