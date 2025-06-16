@@ -13,7 +13,7 @@ WORKDIR /app
 ENV NODE_ENV="production" \
     DATABASE_URL=$DATABASE_URL \
     DATABASE_DIRECT_URL=$DATABASE_URL \
-    NODE_OPTIONS=--max-old-space-size=8192
+    NODE_OPTIONS=--max-old-space-size=16192
 # Throw-away build stage to reduce size of final image
 FROM base AS build
 
@@ -26,18 +26,27 @@ COPY ./packages ./packages
 COPY ./apps/web ./apps/web
 #COPY ./tests ./tests
 
-# Install node modules and dependencies, prune unneeded deps, then build
-RUN set -eux; \
-    apt-get update -qq && \
+# Build stage
+# Instala dependências do sistema
+RUN apt-get update -qq && \
     apt-get install -y build-essential openssl pkg-config python-is-python3 && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists /var/cache/apt/archives && \
-    yarn config set httpTimeout 1200000 && \
-    npx turbo prune --scope=@calcom/web --docker && \
-    npx turbo prune --scope=@calcom/api --docker && \
-    yarn install && \
-    yarn turbo run build --filter=@calcom/api
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives
 
+# Configura Yarn com timeout estendido
+RUN yarn config set httpTimeout 1200000
+
+# Instala dependências antes do prune (melhor compatibilidade)
+RUN yarn install
+
+# Prune para @calcom/web
+RUN npx turbo prune --scope=@calcom/web --docker
+
+# Prune para @calcom/api
+RUN npx turbo prune --scope=@calcom/api --docker
+
+# Build da API
+RUN yarn turbo run build --filter=@calcom/api
 
 # Final stage
 FROM base
