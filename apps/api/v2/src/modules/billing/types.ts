@@ -1,0 +1,10 @@
+export enum PlatformPlan {
+  FREE = "FREE",
+  STARTER = "STARTER",
+  ESSENTIALS = "ESSENTIALS",
+  SCALE = "SCALE",
+  ENTERPRISE = "ENTERPRISE",
+  PER_ACTIVE_USER = "PER_ACTIVE_USER",
+}
+
+export type PlatformPlanType = "FREE" | "STARTER" | "ESSENTIALS" | "SCALE" | "ENTERPRISE" | "PER_ACTIVE_USER";
